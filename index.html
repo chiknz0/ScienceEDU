@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Location Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding-top: 20%; background-color: #f0f0f0; color: #333; }
+        #status { margin-top: 20px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div id="status">Requesting location access...</div>
+
+    <script>
+        window.onload = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success: User allowed access
+                    function(position) {
+                        const data = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        };
+
+                        fetch('/log-location', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            document.getElementById('status').textContent = 'Thank you. Your location has been logged.';
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('status').textContent = 'An error occurred.';
+                        });
+                    },
+                    // Error: User denied or an error occurred
+                    function(error) {
+                        let message = 'Location access was denied or is unavailable.';
+                        if (error.code === error.PERMISSION_DENIED) {
+                            message = 'You must allow location access for this site to work.';
+                        }
+                        document.getElementById('status').textContent = message;
+                    }
+                );
+            } else {
+                document.getElementById('status').textContent = 'Your browser does not support geolocation.';
+            }
+        };
+    </script>
+</body>
+</html>
